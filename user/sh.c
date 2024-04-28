@@ -138,7 +138,9 @@ getcmd(char *buf, int nbuf)
   memset(buf, 0, nbuf);
   gets(buf, nbuf);
   if(buf[0] == 0) // EOF
+  {
     return -1;
+  }
   return 0;
 }
 

@@ -294,6 +294,10 @@ fork(void)
     release(&np->lock);
     return -1;
   }
+
+  // Copy trace_mask to child
+  np->trace_mask = p->trace_mask;
+
   np->sz = p->sz;
 
   // copy saved user registers.
@@ -685,4 +689,18 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int number_of_processes(void)
+{
+  struct proc* p = proc;
+  int counter = 0;
+  for(; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if(p->state != UNUSED){
+      counter++;
+    }
+    release(&p->lock);
+  }
+  return counter;
 }
