@@ -21,7 +21,7 @@ char *testname = "???";
 void
 err(char *why)
 {
-  printf("pgtbltest: %s failed: %s, pid=%d\n", testname, why, getpid());
+  printf("pgtbltest: %s failed: %s\n", testname, why);
   exit(1);
 }
 

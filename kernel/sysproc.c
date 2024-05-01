@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#define MAXPGS 32
 
 uint64
 sys_exit(void)
@@ -70,14 +71,35 @@ sys_sleep(void)
 }
 
 
-#ifdef LAB_PGTBL
+// saving in *bit_mask the mask of the pages that
+// got accesed
 int
 sys_pgaccess(void)
 {
-  // lab pgtbl: your code here.
+  uint64 starting_va;
+  int num_of_pages; 
+  uint64 bit_mask_va;
+  unsigned int bit_mask = 0;
+  argaddr(0, &starting_va);
+  argint(1, &num_of_pages);
+  argaddr(2, &bit_mask_va);
+  if(num_of_pages > MAXPGS){
+    printf("pgaccess cannot track so mush pages...\n");
+    return -1;
+  }
+  //checking accesss bit loop
+  for(int i = 1; i < num_of_pages; i++){
+    if((*walk(myproc()->pagetable, starting_va + PGSIZE * i, 0) & PTE_A) == PTE_A){ // the ith page was accessed
+      bit_mask |= (1 << i);
+    }
+    else{
+      *walk(myproc()->pagetable, starting_va + PGSIZE * i, 0) &= ~PTE_A;
+    }
+  }
+  copyout(myproc()->pagetable, bit_mask_va, (char*)(&bit_mask), MAXPGS);
   return 0;
 }
-#endif
+
 
 uint64
 sys_kill(void)

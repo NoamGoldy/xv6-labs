@@ -238,6 +238,7 @@ uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz, int xperm)
   if(newsz < oldsz)
     return oldsz;
 
+
   oldsz = PGROUNDUP(oldsz);
   for(a = oldsz; a < newsz; a += PGSIZE){
     mem = kalloc();
@@ -291,7 +292,47 @@ freewalk(pagetable_t pagetable)
     }
   }
   kfree((void*)pagetable);
+} 
+
+
+void
+vmprint_rec(pte_t* p, int j){
+  if(j > 2){
+    printf("We arrived too deep Noam...\n");
+  }
+  for(int i = 0; i < 512; i++){
+    pte_t pte = p[i];
+    if(pte & PTE_V){
+      // this PTE points to a lower-level page table.
+      uint64 child = PTE2PA(pte);
+      switch (j) {
+        case 0:
+          printf(".. ");
+          break;
+        case 1:
+          printf(".. .. ");
+          break;
+        case 2:
+          printf(".. .. ..");
+          break;
+      }
+      printf("%d: pte %p pa %p\n",i, pte, child);
+      if((pte & (PTE_R|PTE_W|PTE_X)) == 0)
+        vmprint_rec((pagetable_t)child, j + 1);
+  }
 }
+}
+
+
+// Create a visualization of the page-table pagetable
+void
+vmprint(pagetable_t pagetable)
+{
+  printf("page table %p\n", pagetable);
+  vmprint_rec(pagetable, 0);
+}
+
+
 
 // Free user memory pages,
 // then free page-table pages.
