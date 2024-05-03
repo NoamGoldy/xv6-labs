@@ -138,5 +138,12 @@ printfinit(void)
 void
 backtrace(void)
 {
-  printf("OK");
+  uint64 fp = r_fp();
+  uint64 page_adr = PGROUNDDOWN(fp);
+  printf("backtrace: \n");
+
+  while (PGROUNDDOWN(fp) == page_adr) {
+    printf("%p\n", *((uint64*)fp - 1));
+    fp = *((uint64*)fp - 2);
+  }
 }
