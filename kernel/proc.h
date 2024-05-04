@@ -95,6 +95,51 @@ struct proc {
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 
+  // for the sigalarm syscall
+  int ticks;                   
+  uint64 handler;
+  int ticks_from_last_handler;
+  int alarm_hanler_on;
+  int is_handling_now;
+
+  // list of the registers in CPU before the call to the use handler
+  /*   0 */ uint64 prev_kernel_satp;   // kernel page table
+  /*   8 */ uint64 prev_kernel_sp;     // top of process's kernel stack
+  /*  16 */ uint64 prev_kernel_trap;   // usertrap()
+  /*  24 */ uint64 prev_epc;           // saved user program counter
+  /*  32 */ uint64 prev_kernel_hartid; // saved kernel tp
+  /*  40 */ uint64 prev_ra;
+  /*  48 */ uint64 prev_sp;
+  /*  56 */ uint64 prev_gp;
+  /*  64 */ uint64 prev_tp;
+  /*  72 */ uint64 prev_t0;
+  /*  80 */ uint64 prev_t1;
+  /*  88 */ uint64 prev_t2;
+  /*  96 */ uint64 prev_s0;
+  /* 104 */ uint64 prev_s1;
+  /* 112 */ uint64 prev_a0;
+  /* 120 */ uint64 prev_a1;
+  /* 128 */ uint64 prev_a2;
+  /* 136 */ uint64 prev_a3;
+  /* 144 */ uint64 prev_a4;
+  /* 152 */ uint64 prev_a5;
+  /* 160 */ uint64 prev_a6;
+  /* 168 */ uint64 prev_a7;
+  /* 176 */ uint64 prev_s2;
+  /* 184 */ uint64 prev_s3;
+  /* 192 */ uint64 prev_s4;
+  /* 200 */ uint64 prev_s5;
+  /* 208 */ uint64 prev_s6;
+  /* 216 */ uint64 prev_s7;
+  /* 224 */ uint64 prev_s8;
+  /* 232 */ uint64 prev_s9;
+  /* 240 */ uint64 prev_s10;
+  /* 248 */ uint64 prev_s11;
+  /* 256 */ uint64 prev_t3;
+  /* 264 */ uint64 prev_t4;
+  /* 272 */ uint64 prev_t5;
+  /* 280 */ uint64 prev_t6;
+
   // these are private to the process, so p->lock need not be held.
   uint64 kstack;               // Virtual address of kernel stack
   uint64 sz;                   // Size of process memory (bytes)

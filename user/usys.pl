@@ -35,4 +35,6 @@ entry("dup");
 entry("getpid");
 entry("sbrk");
 entry("sleep");
-entry("uptime");
+entry("uptime");    
+entry("sigalarm");  # my syscall declerations for alarm
+entry("sigreturn");

@@ -78,7 +78,61 @@ usertrap(void)
 
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2)
+  {
+    if(p->alarm_hanler_on)
+    {
+      p->ticks_from_last_handler += 1;
+      // in the case where alarm should call the user handler
+      if(p->ticks_from_last_handler > p->ticks && p->is_handling_now != 1){ 
+
+        // saving the state of the CPU before the calling to the handler
+        p->prev_kernel_satp = p->trapframe->kernel_satp;   
+        p->prev_kernel_sp = p->trapframe->kernel_sp;     
+        p->prev_kernel_trap = p->trapframe->kernel_trap;   
+        p->prev_epc = p->trapframe->epc;           
+        p->prev_kernel_hartid = p->trapframe->kernel_hartid; 
+        p->prev_ra = p->trapframe->ra;
+        p->prev_sp = p->trapframe->sp;
+        p->prev_gp = p->trapframe->gp;
+        p->prev_tp = p->trapframe->tp;
+        p->prev_t0 = p->trapframe->t0;
+        p->prev_t1 = p->trapframe->t1;
+        p->prev_t2 = p->trapframe->t2;
+        p->prev_s0 = p->trapframe->s0;
+        p->prev_s1 = p->trapframe->s1;
+        p->prev_a0 = p->trapframe->a0;
+        p->prev_a1 = p->trapframe->a1;
+        p->prev_a2 = p->trapframe->a2;
+        p->prev_a3 = p->trapframe->a3;
+        p->prev_a4 = p->trapframe->a4;
+        p->prev_a5 = p->trapframe->a5;
+        p->prev_a6 = p->trapframe->a6;
+        p->prev_a7 = p->trapframe->a7;
+        p->prev_s2 = p->trapframe->s2;
+        p->prev_s3 = p->trapframe->s3;
+        p->prev_s4 = p->trapframe->s4;
+        p->prev_s5 = p->trapframe->s5;
+        p->prev_s6 = p->trapframe->s6;
+        p->prev_s7 = p->trapframe->s7;
+        p->prev_s8 = p->trapframe->s8;
+        p->prev_s9 = p->trapframe->s9;
+        p->prev_s10 = p->trapframe->s10;
+        p->prev_s11 = p->trapframe->s11;
+        p->prev_t3 = p->trapframe->t3;
+        p->prev_t4 = p->trapframe->t4;
+        p->prev_t5 = p->trapframe->t5;
+        p->prev_t6 = p->trapframe->t6;
+
+        // changing the return adress to the adress of the user handler
+        p->is_handling_now = 1;
+        p->trapframe->epc = (uint64)p->handler;
+
+        // initiating the ticks
+        p->ticks_from_last_handler = 0;
+      }
+    }
     yield();
+  }
 
   usertrapret();
 }
@@ -127,6 +181,47 @@ usertrapret(void)
   // and switches to user mode with sret.
   uint64 trampoline_userret = TRAMPOLINE + (userret - trampoline);
   ((void (*)(uint64))trampoline_userret)(satp);
+
+
+
+
+        p->trapframe->epc = p->prev_epc;
+        p->trapframe->kernel_satp = p->prev_kernel_satp;   
+        p->trapframe->kernel_sp = p->prev_kernel_sp;     
+        p->trapframe->kernel_trap = p->prev_kernel_trap;   
+        p->trapframe->epc = p->prev_epc;           
+        p->trapframe->kernel_hartid = p->prev_kernel_hartid; 
+        p->trapframe->ra = p->prev_ra;
+        p->trapframe->sp = p->prev_sp;
+        p->trapframe->gp = p->prev_gp;
+        p->trapframe->tp = p->prev_tp;
+        p->trapframe->t0 = p->prev_t0;
+        p->trapframe->t1 = p->prev_t1;
+        p->trapframe->t2 = p->prev_t2;
+        p->trapframe->s0 = p->prev_s0;
+        p->trapframe->s1 = p->prev_s1;
+        p->trapframe->a0 = p->prev_a0;
+        p->trapframe->a1 = p->prev_a1;
+        p->trapframe->a2 = p->prev_a2;
+        p->trapframe->a3 = p->prev_a3;
+        p->trapframe->a4 = p->prev_a4;
+        p->trapframe->a5 = p->prev_a5;
+        p->trapframe->a6 = p->prev_a6;
+        p->trapframe->a7 = p->prev_a7;
+        p->trapframe->s2 = p->prev_s2;
+        p->trapframe->s3 = p->prev_s3;
+        p->trapframe->s4 = p->prev_s4;
+        p->trapframe->s5 = p->prev_s5;
+        p->trapframe->s6 = p->prev_s6;
+        p->trapframe->s7 = p->prev_s7;
+        p->trapframe->s8 = p->prev_s8;
+        p->trapframe->s9 = p->prev_s9;
+        p->trapframe->s10 = p->prev_s10;
+        p->trapframe->s11 = p->prev_s11;
+        p->trapframe->t3 = p->prev_t3;
+        p->trapframe->t4 = p->prev_t4;
+        p->trapframe->t5 = p->prev_t5;
+        p->trapframe->t6 = p->prev_t6;
 }
 
 // interrupts and exceptions from kernel code go here via kernelvec,

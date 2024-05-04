@@ -110,7 +110,6 @@ static struct proc*
 allocproc(void)
 {
   struct proc *p;
-
   for(p = proc; p < &proc[NPROC]; p++) {
     acquire(&p->lock);
     if(p->state == UNUSED) {
@@ -145,6 +144,12 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
+
+  // set up proc fields to alarm syscalls
+  p->ticks_from_last_handler = 0;
+  p->alarm_hanler_on = 0;
+  p->ticks = 0;
+
 
   return p;
 }

@@ -92,3 +92,79 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+
+// my syscall implemetations for alarm
+int
+sys_sigalarm(void)
+{
+  int ticks;
+  uint64 handler;
+  argint(0, &ticks);
+  argaddr(1, &handler);
+  struct proc* p = myproc();
+  if(ticks == 0 && handler == 0)
+  {
+    p->alarm_hanler_on = 0;
+    p->ticks = 0;
+    p->ticks_from_last_handler = 0;
+  }
+  else
+  {
+    p->is_handling_now = 0;
+    p->ticks = ticks;
+    p->handler = handler;
+    p->alarm_hanler_on = 1;
+  }
+  return 0;
+}
+
+
+
+
+int
+sys_sigreturn(void)
+{
+  struct proc* p = myproc();
+  
+  // recovering the state of the CPU before the call to the uder handler
+        p->trapframe->epc = p->prev_epc;
+        p->trapframe->kernel_satp = p->prev_kernel_satp;   
+        p->trapframe->kernel_sp = p->prev_kernel_sp;     
+        p->trapframe->kernel_trap = p->prev_kernel_trap;   
+        p->trapframe->epc = p->prev_epc;           
+        p->trapframe->kernel_hartid = p->prev_kernel_hartid; 
+        p->trapframe->ra = p->prev_ra;
+        p->trapframe->sp = p->prev_sp;
+        p->trapframe->gp = p->prev_gp;
+        p->trapframe->tp = p->prev_tp;
+        p->trapframe->t0 = p->prev_t0;
+        p->trapframe->t1 = p->prev_t1;
+        p->trapframe->t2 = p->prev_t2;
+        p->trapframe->s0 = p->prev_s0;
+        p->trapframe->s1 = p->prev_s1;
+        p->trapframe->a0 = p->prev_a0;
+        p->trapframe->a1 = p->prev_a1;
+        p->trapframe->a2 = p->prev_a2;
+        p->trapframe->a3 = p->prev_a3;
+        p->trapframe->a4 = p->prev_a4;
+        p->trapframe->a5 = p->prev_a5;
+        p->trapframe->a6 = p->prev_a6;
+        p->trapframe->a7 = p->prev_a7;
+        p->trapframe->s2 = p->prev_s2;
+        p->trapframe->s3 = p->prev_s3;
+        p->trapframe->s4 = p->prev_s4;
+        p->trapframe->s5 = p->prev_s5;
+        p->trapframe->s6 = p->prev_s6;
+        p->trapframe->s7 = p->prev_s7;
+        p->trapframe->s8 = p->prev_s8;
+        p->trapframe->s9 = p->prev_s9;
+        p->trapframe->s10 = p->prev_s10;
+        p->trapframe->s11 = p->prev_s11;
+        p->trapframe->t3 = p->prev_t3;
+        p->trapframe->t4 = p->prev_t4;
+        p->trapframe->t5 = p->prev_t5;
+        p->trapframe->t6 = p->prev_t6;
+  p->is_handling_now = 0;
+  return p->trapframe->a0;
+}
