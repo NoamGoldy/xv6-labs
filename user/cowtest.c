@@ -64,7 +64,6 @@ threetest()
     printf("sbrk(%d) failed\n", sz);
     exit(-1);
   }
-
   pid1 = fork();
   if(pid1 < 0){
     printf("fork failed\n");
@@ -77,7 +76,7 @@ threetest()
       exit(-1);
     }
     if(pid2 == 0){
-      for(char *q = p; q < p + (sz/5)*4; q += 4096){
+      for(char *q = p; q < p + (sz/5)*4; q += 4096){  
         *(int*)q = getpid();
       }
       for(char *q = p; q < p + (sz/5)*4; q += 4096){
@@ -181,10 +180,10 @@ int
 main(int argc, char *argv[])
 {
   simpletest();
-
+  printf("passed first test\n");
   // check that the first simpletest() freed the physical memory.
   simpletest();
-
+  printf("passed second test\n");
   threetest();
   threetest();
   threetest();

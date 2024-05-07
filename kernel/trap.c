@@ -11,6 +11,8 @@ uint ticks;
 
 extern char trampoline[], uservec[], userret[];
 
+extern int reference_page_count[];
+
 // in kernelvec.S, calls kerneltrap().
 void kernelvec();
 
@@ -67,7 +69,43 @@ usertrap(void)
     syscall();
   } else if((which_dev = devintr()) != 0){
     // ok
-  } else {
+
+  } else if (r_scause() == 15){
+    // page_fault
+    char* mem;
+    pte_t *pte = walk(p -> pagetable, r_stval(), 0);
+    if ((*pte & PTE_COW) == 0){
+      printf("The problamatic pte is %p, ref_pg_cnt is %d\n", *pte);
+      printf("usertrap(): tried to write without access scause %p pid=%d\n", r_scause(), p->pid);
+      printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
+      setkilled(p);
+    }
+    else{
+      if (reference_page_count[PA2REF_COUNT_IDX(PTE2PA(*pte))] == 1) {
+        *pte |= PTE_W;
+        *pte &= ~ PTE_COW;
+      }
+      else {
+        uint64 pa = PTE2PA(*pte);
+        uint flags = PTE_FLAGS(*pte);
+        flags &= ~PTE_COW;
+        flags |= PTE_W;
+        if((mem = kalloc()) == 0){
+          printf("could not allocate more pages....\n");
+          setkilled(p);
+        }
+        else{
+          memmove(mem, (char*)pa, PGSIZE);
+          kfree((void*)pa);
+          *pte = (PA2PTE(mem) | flags);
+        }
+      }
+    }
+  }
+  
+  
+  
+  else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
     setkilled(p);
