@@ -386,6 +386,7 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
         if ((mem = kalloc()) == 0)
           return -1;
         *pte = (PA2PTE(mem) | PTE_FLAGS(*pte) | PTE_W) & ~PTE_COW;
+        memmove(mem, (char*)pa0, PGSIZE);
         kfree((void*)pa0);
         pa0 = (uint64)mem;
       }
