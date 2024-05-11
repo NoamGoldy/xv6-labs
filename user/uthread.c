@@ -10,8 +10,26 @@
 #define STACK_SIZE  8192
 #define MAX_THREAD  4
 
+struct context {
+  uint64 ra;
+  uint64 sp;
+  uint64 s0;
+  uint64 s1;
+  uint64 s2;
+  uint64 s3;
+  uint64 s4;
+  uint64 s5;
+  uint64 s6;
+  uint64 s7;
+  uint64 s8;
+  uint64 s9;
+  uint64 s10;
+  uint64 s11;
+};
+
 
 struct thread {
+  struct context context;       /* the callee-save registers for thread_switch */
   char       stack[STACK_SIZE]; /* the thread's stack */
   int        state;             /* FREE, RUNNING, RUNNABLE */
 };
@@ -56,10 +74,7 @@ thread_schedule(void)
     next_thread->state = RUNNING;
     t = current_thread;
     current_thread = next_thread;
-    /* YOUR CODE HERE
-     * Invoke thread_switch to switch from t to next_thread:
-     * thread_switch(??, ??);
-     */
+    thread_switch((uint64)&t->context, (uint64)&next_thread->context);
   } else
     next_thread = 0;
 }
@@ -73,7 +88,8 @@ thread_create(void (*func)())
     if (t->state == FREE) break;
   }
   t->state = RUNNABLE;
-  // YOUR CODE HERE
+  t->context.ra = (uint64)func;
+  t->context.sp = ((uint64)&t->stack) + sizeof(t->stack);
 }
 
 void 
@@ -118,7 +134,7 @@ thread_b(void)
   for (i = 0; i < 100; i++) {
     printf("thread_b %d\n", i);
     b_n += 1;
-    thread_yield();
+        thread_yield();
   }
   printf("thread_b: exit after %d\n", b_n);
 
